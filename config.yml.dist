@@ -1,0 +1,8 @@
+parameters:
+    beanstalked.server: beanstalkd
+
+services:
+    pheanstalk:
+        class: Pheanstalk\Pheanstalk
+        arguments:
+            - %beanstalkd.server%
