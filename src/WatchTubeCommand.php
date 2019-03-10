@@ -31,6 +31,13 @@ class WatchTubeCommand extends AbstractCommand
         ;
     }
 
+    /**
+     * @param InputInterface  $input
+     * @param OutputInterface $output
+     *
+     * @return int|void|null
+     * @throws \Symfony\Component\DependencyInjection\Exception\InactiveScopeException
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         set_time_limit(0);
@@ -50,20 +57,22 @@ class WatchTubeCommand extends AbstractCommand
 
             $exec = escapeshellcmd(str_replace('%payload%', $job->getData(), $cmd));
 
-            $output->writeln("<comment>$exec</comment>");
+            $t = date("Y-m-d H:i:s");
+
+            $output->writeln("<comment>$t: $exec</comment>");
 
             $commandOutput = [];
             exec($exec, $commandOutput, $code);
 
-            $t = date("Y-m-d H:i:s");
-
             if ($code) {
                 // something went wrong, output and bury it
-                $output->writeln(sprintf("$t <error>Exitcode %s for job %s, burying.</error> %s", $code, $job->getId(), implode(' ', $commandOutput)));
+                $output->writeln(sprintf("<error>Exitcode %s for job %s, burying.</error> %s",
+                    $code, $job->getId(), implode(' ', $commandOutput)));
                 $client->bury($job);
             }
             else {
-                $output->writeln(sprintf("$t <info>Success!</info> %s", $commandOutput ? implode("\n", $commandOutput) : ''));
+                $output->writeln(sprintf("<info>Success!</info> %s",
+                    $commandOutput ? implode("\n", $commandOutput) : ''));
                 $client->delete($job);
             }
         }
